@@ -1,10 +1,12 @@
-let ws;
-let currentPlayer; // 1 or 2
-let player1Weapon = null;
-let player2Weapon = null;
+let ws; // WebSocket connection
+let currentPlayer; // Current player: 1 or 2
+let player1Weapon = null; // Weapon choice of player 1
+let player2Weapon = null; // Weapon choice of player 2
 
+// Event listener for when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', (event) => {
 
+    // Get references to various elements on the page
     const choices = document.querySelectorAll('.choice');
     const player1ScoreElem = document.querySelector('.player1-score');
     const player2ScoreElem = document.querySelector('.player2-score');
@@ -13,9 +15,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const playersChoiceElem = document.querySelector('#players-choice');
     const currentPlayerElem = document.querySelector('.player');
 
-    const weapons = ['rock', 'paper', 'scissors'];
-    let player1Score = 0;
-    let player2Score = 0;
+    const weapons = ['rock', 'paper', 'scissors']; // Array of possible weapon choices
+    let player1Score = 0; // Score of player 1
+    let player2Score = 0; // Score of player 2
     currentPlayer = 1; // Player 1 starts the game
 
     // Establish a WebSocket connection
@@ -28,10 +30,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     // This function is executed when a message is received from the server
     ws.onmessage = function(event) {
-        const data = JSON.parse(event.data);
+        const data = JSON.parse(event.data); // Parse the received data
         console.log("Received data: ", data);
 
-        // updates current player
+        // Updates current player
         if (data.currentPlayer) {
             if (data.currentPlayer === "Player 1") {
                 currentPlayer = 1;
@@ -43,7 +45,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             console.log(currentPlayer + " connected");
         }
 
-        // determine who wins
+        // Determine who wins
         else if (data.result) {
             if (data.result === "Player 1 Wins!") {
                 player1Score++;
@@ -56,7 +58,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             }
         }
 
-        // handle reset game message
+        // Handle reset game message
         else if (data.resetGame) {
             resetGame(false);
         }
@@ -93,7 +95,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         if (currentPlayer === 1) {
             player1Weapon = this.id;
 
-            //websocket
+            // Send player 1 choice to the server
             ws.send(JSON.stringify({
                 type: 'playerChoice',
                 username: 'Player 1',
@@ -102,7 +104,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         } else if (currentPlayer === 2) {
             player2Weapon = this.id;
 
-            //websocket
+            // Send player 2 choice to the server
             ws.send(JSON.stringify({
                 type: 'playerChoice',
                 username: 'Player 2',
@@ -122,8 +124,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         playersChoiceElem.innerHTML = '';
         enableOptions();
 
-        // send reset message to the server.
-        // only send reset message to server if sendReset is true
+        // Send reset message to the server if sendResetMessage is true
         if (sendResetMessage) {
             ws.send(JSON.stringify({
                 type: 'resetGame'
@@ -131,19 +132,21 @@ document.addEventListener('DOMContentLoaded', (event) => {
         }
     }
 
+    // Function to disable the weapon choices
     function disableOptions() {
         choices.forEach((choice) => {
             choice.style.pointerEvents = 'none';
         });
     }
 
+    // Function to enable the weapon choices
     function enableOptions() {
         choices.forEach((choice) => {
             choice.style.pointerEvents = 'auto';
         });
     }
 
-    // Event listeners
+    // Event listeners for the weapon choices and the play again button
     choices.forEach((choice) => choice.addEventListener('click', selectWeapon));
     playAgainBtn.addEventListener('click', resetGame);
 });

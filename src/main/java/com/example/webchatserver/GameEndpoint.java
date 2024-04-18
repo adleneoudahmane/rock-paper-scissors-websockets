@@ -12,11 +12,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-@ServerEndpoint("/game/{currentUsername}")
+@ServerEndpoint("/game/{currentUsername}") // Annotates this class as a WebSocket server endpoint that listens at the specified URL
 public class GameEndpoint {
-    private static final Map<String, String> playerChoices = new ConcurrentHashMap<>();
-    private static final Map<String, Session> sessions = new ConcurrentHashMap<>();
+    private static final Map<String, String> playerChoices = new ConcurrentHashMap<>(); // Keeps track of players choices
+    private static final Map<String, Session> sessions = new ConcurrentHashMap<>(); // Keeps track of each player's session
 
+    /*
+    Annotates the following method to be called when a WebSocket connection is
+    opened
+     */
     @OnOpen
     public void onOpen(Session session) throws IOException, EncodeException {
         //max 2 sessions at a time
@@ -39,11 +43,19 @@ public class GameEndpoint {
         session.getBasicRemote().sendText(new Gson().toJson(Map.of("currentPlayer", currenPlayer)));
     }
 
+    /*
+    Annotates the following method to be called when a WebSocket connection is
+    closed
+     */
     @OnClose
     public void onClose(Session session) {
         sessions.entrySet().removeIf(entry -> entry.getValue().equals(session));
     }
 
+    /*
+    Annotates the following method to be called when a WebSocket message is
+    received
+     */
     @OnMessage
     public void onMessage(Session session, String message) throws IOException {
         JsonObject jsonMessage = JsonParser.parseString(message).getAsJsonObject();
@@ -75,9 +87,9 @@ public class GameEndpoint {
             }
         }
 
-        // Reset the game (reached 5 points)
+        // Reset the game (only reached 5 points)
         /*
-        when a reset message is received, the game state is reset and a message is sent to
+        When a reset message is received, the game state is reset and a message is sent to
         all connected clients indicating that the game has been reset. On the client side,
         you would need to handle this reset message and update the UI accordingly.
          */
@@ -93,6 +105,7 @@ public class GameEndpoint {
         }
     }
 
+    // Determines the winner of a single round
     private String determineWinner(String player1Weapon, String player2Weapon) {
         if (player1Weapon.equals(player2Weapon)) {
             return "It's a tie!";
